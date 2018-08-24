@@ -2,6 +2,7 @@ import traceback
 import logging
 import socket
 import sys
+import json
 from datetime import datetime
 try:
     import json
@@ -118,10 +119,14 @@ class LogstashFormatterVersion1(LogstashFormatterBase):
 
     def format(self, record):
         # Create message dict
+
+        rec_string = record.getMessage()
+        rec_data = json.loads(rec_string)
+
         message = {
             '@timestamp': self.format_timestamp(record.created),
             '@version': '1',
-            'message': record.getMessage(),
+            'message': rec_string,
             'host': self.host,
             'path': record.pathname,
             'tags': self.tags,
@@ -131,6 +136,8 @@ class LogstashFormatterVersion1(LogstashFormatterBase):
             'level': record.levelname,
             'logger_name': record.name,
         }
+
+        message.update(rec_data)
 
         # Add extra fields
         message.update(self.get_extra_fields(record))
